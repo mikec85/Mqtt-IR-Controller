@@ -11,7 +11,7 @@ metadata {
         command "hdmi3"
         command "hdmi4"
         attribute "recievedir", "string"
-        attribute "recievedcmd", "string"
+        attribute "recievedcmd", "enum", ["powercycle", "poweron", "poweroff", "volup", "voldown", "mute", "hdmi1", "hdmi2", "hdmi3", "hdmi4"]
     }
 }
 
@@ -93,9 +93,10 @@ def updated() {
 
 def parse(String description) {
     if (logEnable) log.debug(interfaces.mqtt.parseMessage(description))
-    recievedir = interfaces.mqtt.parseMessage(description)
-    sendEvent(name: "recievedir", value: interfaces.mqtt.parseMessage(description))
-    recievedcmd = interfaces.mqtt.parseMessage(description)
+    recievedir = interfaces.mqtt.parseMessage(description).payload   
+    recievedir = recievedir.substring(14,recievedir.length()-1)
+    sendEvent(name: "recievedir", value: interfaces.mqtt.parseMessage(description).payload)
+    recievedcmd = recievedir
     if ( recievedir == powercycle) {
         if (logEnable) log.debug("Recieved PowerCycle")
         sendEvent(name: "recievedcmd", value: "powercycle")
