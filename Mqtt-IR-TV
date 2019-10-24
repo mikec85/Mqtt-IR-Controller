@@ -1,0 +1,195 @@
+metadata {
+    definition(name: "Mqtt-IR-TV", namespace: "mc", author: "mc", importUrl: "") {
+        capability "Initialize"
+        capability "Switch"
+        command "volume_up"
+        command "volume_down"
+        command "mute"
+        command "powercycle"
+        command "hdmi1"
+        command "hdmi2"
+        command "hdmi3"
+        command "hdmi4"
+        attribute "recievedir", "string"
+        attribute "recievedcmd", "string"
+    }
+}
+
+preferences {
+    input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: true
+    input "MqttIP", "string", title:"MqttIP", description: "", required: true, displayDuringSetup: true
+    input "irname", "string", title:"MQTT-Device-Name", description: "", required: true, displayDuringSetup: true
+    
+    input "powercycle", "string", title:"IR-PowerCycle", description: "", required: true, displayDuringSetup: true
+    input "poweron", "string", title:"IR-PowerOn", description: "", required: true, displayDuringSetup: true
+    input "poweroff", "string", title:"IR-PowerOff", description: "", required: true, displayDuringSetup: true
+    input "volup", "string", title:"IR-VolumeUp", description: "", required: true, displayDuringSetup: true
+    input "voldown", "string", title:"IR-VolumeDown", description: "", required: true, displayDuringSetup: true
+    input "mute", "string", title:"IR-Mute", description: "", required: true, displayDuringSetup: true
+    input "hdmi1", "string", title:"IR-HDMI1", description: "", required: true, displayDuringSetup: true
+    input "hdmi2", "string", title:"IR-HDMI2", description: "", required: true, displayDuringSetup: true
+    input "hdmi3", "string", title:"IR-HDMI3", description: "", required: true, displayDuringSetup: true
+    input "hdmi4", "string", title:"IR-HDMI4", description: "", required: true, displayDuringSetup: true
+    
+      simulator {
+  }
+
+  tiles {
+    standardTile("button", "device.switch", width: 2, height: 2, canChangeIcon: true) {
+      state "off", label: 'Off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff", nextState: "on"
+      state "on", label: 'On', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821", nextState: "off"
+    }
+
+    standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
+      state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
+    }
+
+    standardTile("volume_up", "device.switch", inactiveLabel: false, decoration: "flat") {
+      state "default", label:"Vol +", action:"volume_up", icon:"st.custom.sonos.unmuted"
+    }
+
+    standardTile("volume_down", "device.switch", inactiveLabel: false, decoration: "flat") {
+      state "default", label:"Vol -", action:"volume_down", icon:"st.custom.sonos.unmuted"
+    }
+
+    standardTile("mute", "device.switch", inactiveLabel: false, decoration: "flat") {
+      state "default", label:"Mute", action:"mute", icon:"st.custom.sonos.muted"
+    }
+
+    standardTile("hdmi1", "device.switch", inactiveLabel: false, decoration: "flat") {
+      state "default", label:"HDMI 1", action:"hdmi1", icon:"st.Electronics.electronics12"
+    }
+
+    standardTile("hdmi2", "device.switch", inactiveLabel: false, decoration: "flat") {
+      state "default", label:"HDMI 2", action:"hdmi2", icon:"st.Electronics.electronics12"
+    }
+
+    standardTile("hdmi3", "device.switch", inactiveLabel: false, decoration: "flat") {
+      state "default", label:"HDMI 3", action:"hdmi3", icon:"st.Electronics.electronics12"
+    }
+
+    standardTile("hdmi4", "device.switch", inactiveLabel: false, decoration: "flat") {
+      state "default", label:"HDMI 4", action:"hdmi4", icon:"st.Electronics.electronics12"
+    }
+    standardTile("powercycle", "device.switch", inactiveLabel: false, decoration: "flat") {
+      state "default", label:"PowerCycle", action:"powercycle", icon:"st.Electronics.electronics12"
+    }  
+
+    main "button"
+    details(["button", "refresh", "mute", "volume_down", "volume_up", "hdmi1", "hdmi2", "hdmi3", "hdmi4","powercycle"])
+  }
+}
+
+def logsOff() {
+    log.warn "debug logging disabled..."
+    device.updateSetting("logEnable", [value: "false", type: "bool"])
+}
+
+def updated() {
+    log.info "updated..."
+    log.warn "debug logging is: ${logEnable == true}"
+    if (logEnable) runIn(1800, logsOff)
+}
+
+def parse(String description) {
+    if (logEnable) log.debug(interfaces.mqtt.parseMessage(description))
+    recievedir = interfaces.mqtt.parseMessage(description)
+    sendEvent(name: "recievedir", value: interfaces.mqtt.parseMessage(description))
+    if ( recievedir == powercycle) {
+        if (logEnable) log.debug("Recieved PowerCycle")
+        sendEvent(name: "recievedcmd", value: "powercycle")
+    } else if ( recievedir == poweron){
+        if (logEnable) log.debug("Recieved Power ON")
+        sendEvent(name: "recievedcmd", value: "poweron")
+    } else if ( recievedir == poweroff){
+        if (logEnable) log.debug("Recieved Power OFF")
+        sendEvent(name: "recievedcmd", value: "poweroff")
+    } else if ( recievedir == volup){
+        if (logEnable) log.debug("Recieved Volume UP")
+        sendEvent(name: "recievedcmd", value: "volup")
+    } else if ( recievedir == voldown){
+        if (logEnable) log.debug("Recieved Volume Down")
+        sendEvent(name: "recievedcmd", value: "voldown")
+    } else if ( recievedir == mute){
+        if (logEnable) log.debug("Recieved Mute")
+        sendEvent(name: "recievedcmd", value: "mute")
+    } else if ( recievedir == hdmi1){
+        if (logEnable) log.debug("Recieved Input HDMI1")
+        sendEvent(name: "recievedcmd", value: "hdmi1")
+    } else if ( recievedir == hdmi2){
+        if (logEnable) log.debug("Recieved Input HDMI2")
+        sendEvent(name: "recievedcmd", value: "hdmi2")
+    } else if ( recievedir == hdmi3){
+        if (logEnable) log.debug("Recieved Input HDMI3")
+        sendEvent(name: "recievedcmd", value: "hdmi3")
+    } else if ( recievedir == hdmi4){
+        if (logEnable) log.debug("Recieved Input HDMI4")
+        sendEvent(name: "recievedcmd", value: "hdmi4")
+    }
+}
+
+def on() {
+    publishMsg(poweron,"poweron")
+}
+
+def off() {
+    publishMsg(poweroff,"poweroff")
+}
+
+def volumeUp() {
+    publishMsg(volup,"volup")
+}
+def volumeDown() {
+    publishMsg(voldown,"voldown")
+}
+def volume_up() {
+  volumeUp()
+}
+
+def volume_down() {
+  volumeDown()
+}
+
+def mute() {
+    publishMsg(mute,"mute")
+  
+}
+def hdmi1() {
+    publishMsg(hdmi1,"hdmi1")
+}
+
+def hdmi2() {
+    publishMsg(hdmi2,"hdmi2")
+}
+
+def hdmi3() {
+    publishMsg(hdmi3,"hdmi3")
+}
+
+def hdmi4() {
+    publishMsg(hdmi4,"hdmi4")
+}
+void publishMsg(String s, String cmd) {
+    if (logEnable) log.debug "Sending ${cmd} request ${s} to  ${irname} [${MqttIP}]"
+    interfaces.mqtt.publish("cmnd/${irname}/IRsend", s)
+}
+
+void initialize() {
+    try {
+        def mqttInt = interfaces.mqtt
+        mqttInt.connect("tcp://${settings.MqttIP}:1883", "hubitattest", null, null)
+        pauseExecution(1000)
+        if (logEnable) log.info "connection established"
+        mqttInt.subscribe("tele/${irname}/RESULT")
+        if (logEnable) log.info "Subscribed to tele/${irname}/RESULT"
+    } catch(e) {
+        log.debug "mqtt initialize error: ${e.message}"
+    }
+}
+void installed() {
+    if (logEnable) log.warn "mqtt installed..."
+}
+
+void mqttClientStatus(String message) {
+    if (logEnable) log.debug "mqtt error ${message}"       
+}
