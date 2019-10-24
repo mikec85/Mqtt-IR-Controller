@@ -95,6 +95,7 @@ def parse(String description) {
     if (logEnable) log.debug(interfaces.mqtt.parseMessage(description))
     recievedir = interfaces.mqtt.parseMessage(description)
     sendEvent(name: "recievedir", value: interfaces.mqtt.parseMessage(description))
+    recievedcmd = interfaces.mqtt.parseMessage(description)
     if ( recievedir == powercycle) {
         if (logEnable) log.debug("Recieved PowerCycle")
         sendEvent(name: "recievedcmd", value: "powercycle")
