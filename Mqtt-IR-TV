@@ -190,6 +190,7 @@ void initialize() {
 }
 void installed() {
     if (logEnable) log.warn "mqtt installed..."
+    initialize()
 }
 
 void mqttClientStatus(String message) {
